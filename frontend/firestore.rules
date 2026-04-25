@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Demo thread is publicly readable — unauthenticated users see the live demo
+    match /threads/demo/messages/{messageId} {
+      allow read: if true;
+    }
+
+    // All other thread messages require authentication
+    match /threads/{threadId}/messages/{messageId} {
+      allow read: if request.auth != null;
+    }
+
+    // All writes go through the backend Admin SDK and bypass these rules.
+    // Deny all client-side writes explicitly.
+    match /{document=**} {
+      allow write: if false;
+    }
+  }
+}
