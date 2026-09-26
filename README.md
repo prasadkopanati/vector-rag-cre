@@ -1,5 +1,5 @@
-```markdown
 # 🏢 AI-Powered Membership Platform for Commercial & Industrial Real Estate
+
 
 ## 📌 Overview
 
@@ -415,6 +415,3 @@ This MVP delivers:
 * Launch landing page
 
 ---
-
-```
-```

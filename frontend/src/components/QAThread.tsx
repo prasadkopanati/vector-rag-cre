@@ -10,7 +10,9 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { postQuery } from '@/lib/api';
+import type { CitationSource } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { CitationModal } from './CitationModal';
 
 interface Message {
   id: string;
@@ -18,8 +20,14 @@ interface Message {
   question: string;
   aiResponse: string;
   feedback: string;
-  citations: string[];
+  citations: (CitationSource | string)[];
   timestamp: Timestamp | null;
+}
+
+function normalizeCitations(raw: (CitationSource | string)[]): CitationSource[] {
+  return raw.map((c) =>
+    typeof c === 'string' ? { bookTitle: c, excerpts: [] } : c
+  );
 }
 
 interface QAThreadProps {
@@ -33,6 +41,7 @@ export function QAThread({ threadId = 'demo', onSignInRequired }: QAThreadProps)
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activeCitation, setActiveCitation] = useState<CitationSource | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -110,14 +119,15 @@ export function QAThread({ threadId = 'demo', onSignInRequired }: QAThreadProps)
                   {/* Citations */}
                   {msg.citations?.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      {msg.citations.map((c) => (
-                        <span
-                          key={c}
-                          className="inline-flex items-center gap-1 text-xs bg-gray-700/60 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full"
+                      {normalizeCitations(msg.citations).map((c) => (
+                        <button
+                          key={c.bookTitle}
+                          onClick={() => c.excerpts.length > 0 && setActiveCitation(c)}
+                          className={`inline-flex items-center gap-1 text-xs bg-gray-700/60 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full transition-colors ${c.excerpts.length > 0 ? 'hover:bg-gray-600/60 cursor-pointer' : 'cursor-default opacity-60'}`}
                         >
                           <span>📖</span>
-                          <span>{c}</span>
-                        </span>
+                          <span>{c.bookTitle}</span>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -192,6 +202,7 @@ export function QAThread({ threadId = 'demo', onSignInRequired }: QAThreadProps)
           </p>
         )}
       </div>
+      <CitationModal citation={activeCitation} onClose={() => setActiveCitation(null)} />
     </div>
   );
 }

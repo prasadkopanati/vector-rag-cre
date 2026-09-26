@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import type { CitationSource } from './types';
 
 let initialized = false;
 
@@ -26,7 +27,7 @@ export interface ThreadMessage {
   question: string;
   aiResponse: string;
   feedback: string;
-  citations: string[];
+  citations: CitationSource[];
   timestamp: admin.firestore.Timestamp | Date;
 }
 
@@ -34,7 +35,7 @@ export interface ThreadMessage {
 // and to support async feedback updates on individual messages.
 export async function addThreadMessage(
   threadId: string,
-  data: { userId: string; question: string; aiResponse: string; citations: string[] }
+  data: { userId: string; question: string; aiResponse: string; citations: CitationSource[] }
 ): Promise<string> {
   const ref = await db()
     .collection('threads')

@@ -13,9 +13,14 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface CitationSource {
+  bookTitle: string;
+  excerpts: string[];
+}
+
 export interface QueryResponse {
   answer: string;
-  citations: string[];
+  citations: CitationSource[];
 }
 
 export function postQuery(

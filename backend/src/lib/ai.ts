@@ -1,5 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import type { CitationSource } from './types';
+
+export type { CitationSource };
 
 export interface Chunk {
   text: string;
@@ -9,7 +12,7 @@ export interface Chunk {
 
 export interface QueryResponse {
   answer: string;
-  citations: string[];
+  citations: CitationSource[];
 }
 
 interface AIProvider {
@@ -123,7 +126,14 @@ export async function askGroundedQuestion(
     buildGroundedUser(chunks, question),
     1024
   );
-  const citations = [...new Set(chunks.map((c) => c.bookTitle))];
+  const citationMap = new Map<string, string[]>();
+  for (const chunk of chunks) {
+    if (!citationMap.has(chunk.bookTitle)) citationMap.set(chunk.bookTitle, []);
+    citationMap.get(chunk.bookTitle)!.push(chunk.text);
+  }
+  const citations: CitationSource[] = Array.from(citationMap.entries()).map(
+    ([bookTitle, excerpts]) => ({ bookTitle, excerpts })
+  );
   return { answer, citations };
 }
 
